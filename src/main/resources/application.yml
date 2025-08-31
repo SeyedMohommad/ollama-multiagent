@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: Ollama Multi-Agent Orchestrator (Lightweight)
+  mvc:
+    view:
+      prefix: /WEB-INF/
+      suffix: .jsp
+
+ollama:
+  base-url: http://127.0.0.1:11434
+  keep-alive: "0"
+  num-ctx: 2048
+  num-gpu: 0
+  temperature: 0.7
