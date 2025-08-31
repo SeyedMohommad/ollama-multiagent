@@ -3,14 +3,18 @@ package ai.multiagent.ollama_multiagent.ollama;
 
 import ai.multiagent.ollama_multiagent.ollama.dto.OllamaGenerateChunk;
 import ai.multiagent.ollama_multiagent.ollama.dto.OllamaGenerateRequest;
+import ai.multiagent.ollama_multiagent.ollama.dto.OllamaModelTag;
+import ai.multiagent.ollama_multiagent.ollama.dto.OllamaTagsResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -76,4 +80,12 @@ public class OllamaClient {
             return err;
         }
     }
+    public Mono<List<OllamaModelTag>> listModels() {
+        return webClient.get()
+                .uri("/api/tags")
+                .retrieve()
+                .bodyToMono(OllamaTagsResponse.class)
+                .map(r -> r != null && r.models != null ? r.models : java.util.List.of());
+    }
+
 }
