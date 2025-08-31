@@ -8,15 +8,12 @@
     String topicStr = String.valueOf(request.getAttribute("topic"));
     String topicJson = __om.writeValueAsString(topicStr);
 
-    String roundsStr      = String.valueOf(request.getAttribute("rounds"));
-    String useLlama1BStr  = String.valueOf(request.getAttribute("useLlama1B"));
-    String useQwen15BStr  = String.valueOf(request.getAttribute("useQwen15B"));
-    String usePhi3MiniStr = String.valueOf(request.getAttribute("usePhi3Mini"));
-    String usePhi4MiniStr = String.valueOf(request.getAttribute("usePhi4Mini"));
+    String roundsStr = String.valueOf(request.getAttribute("rounds"));
 
     @SuppressWarnings("unchecked")
     List<Agent> agents = (List<Agent>) request.getAttribute("agents");
 
+    // Build a simple { name: { model: "..." } } map for JS
     Map<String, Map<String, String>> info = new LinkedHashMap<>();
     if (agents != null) {
         for (Agent a : agents) {
@@ -26,6 +23,12 @@
         }
     }
     String agentsJson = __om.writeValueAsString(info);
+
+    // Selected models to pass along to SSE query (?models=...&models=...)
+    @SuppressWarnings("unchecked")
+    List<String> selectedModels = (List<String>) request.getAttribute("selectedModels");
+    if (selectedModels == null) selectedModels = java.util.List.of();
+    String modelsJson = __om.writeValueAsString(selectedModels);
 %>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -93,17 +96,13 @@
     // Inputs from server
     const TOPIC       = <%= topicJson %>;
     const ROUNDS      = <%= roundsStr %>;
-    const USE_LLAMA   = <%= useLlama1BStr %>;
-    const USE_QWEN    = <%= useQwen15BStr %>;
-    const USE_PHI3    = <%= usePhi3MiniStr %>;
-    const USE_PHI4    = <%= usePhi4MiniStr %>;
-    const AGENTS_INFO = <%= agentsJson %>; // { "Llama1B": { model:"llama3.2:1b" }, ... }
+    const AGENTS_INFO = <%= agentsJson %>;   // { "Llama1B": { model:"llama3.2:1b" }, ... }
+    const MODELS      = <%= modelsJson %>;   // ["llama3.2:1b","qwen2.5:1.5b-instruct", ...]
 
     document.getElementById("topicView").textContent = TOPIC || "—";
 
     const chat = document.getElementById("chat");
     const hint = document.getElementById("hint");
-
     const scrollBottom = () => chat.scrollTop = chat.scrollHeight;
 
     const initials = (name) => {
@@ -172,11 +171,10 @@
         scrollBottom();
     }
 
-    // SSE hookup
-    const params = new URLSearchParams({
-        topic:TOPIC, rounds:ROUNDS,
-        useLlama1B:USE_LLAMA, useQwen15B:USE_QWEN, usePhi3Mini:USE_PHI3, usePhi4Mini:USE_PHI4
-    });
+    // SSE params: ?topic=...&rounds=...&models=...&models=...
+    const params = new URLSearchParams({ topic: TOPIC, rounds: ROUNDS });
+    (MODELS || []).forEach(m => params.append("models", m));
+
     const es = new EventSource("/api/stream?" + params.toString());
 
     es.addEventListener("start", (e)=>{
