@@ -7,6 +7,7 @@ Messages stream live with **SSE** (Server-Sent Events) and render like a **group
 
 > Built for low-resource setups (CPU-only). Works great with `llama3.2:1b`, `qwen2.5:1.5b-instruct`, `phi3:mini`, `phi4-mini:latest`.
 
+[![Screenshot-2025-09-01-at-12-15-23-PM.png](https://i.postimg.cc/fb5Gw5Dx/Screenshot-2025-09-01-at-12-15-23-PM.png)](https://postimg.cc/3y4S1XyR)
 ---
 
 ## ✨ Features
